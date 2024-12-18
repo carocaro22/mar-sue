@@ -15,7 +15,6 @@ from keras.layers import LSTM, Dropout, Dense
 
 # Utilities for TensorBoard
 from keras.callbacks import TensorBoard
-import datetime
 import os
 import shutil
 
@@ -109,21 +108,21 @@ class RockPaperScissors:
 
                 # create model
                 model = Sequential()
-                model.add(LSTM(hidden_units, return_sequences=stackLSTM, input_shape=(timestep_length, input_dim)))
+                model.add(LSTM(hidden_units, return_sequences=stackLSTM, input_shape=(timestep_length, input_dim))) # EingabeSchicht
                 if stackLSTM:
                     model.add(Dropout(dropout))
-                    model.add(LSTM(hidden_units))
+                    model.add(LSTM(hidden_units)) # Hidden layer
                 model.add(Dropout(dropout))
-                model.add(Dense(output_dim, activation='softmax'))
+                model.add(Dense(output_dim, activation='softmax')) # Ausgangsschicht
 
-                # train model
-                now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-                tbCallBack = TensorBoard(log_dir='./logs/' + now, histogram_freq=1, write_graph=True, write_images=False)
+                # Tensorboard Datenvisualisierung
+                tbCallBack = TensorBoard(log_dir='./logs/' + f'H{i}', histogram_freq=1, write_graph=True, write_images=False)
 
                 showProgress = 0
                 if verbose: 
                     showProgress = 2
 
+                # Train Model
                 model.compile(
                     loss='categorical_crossentropy', 
                     metrics=['accuracy'], 
@@ -133,11 +132,11 @@ class RockPaperScissors:
                 model.fit(
                     X_train,
                     y_train,
-                    epochs=30,
-                    batch_size=20,
+                    epochs=35, # Epoch andern
+                    batch_size=20, # Batch size andern
                     verbose=showProgress,
                     validation_split=0.2,
-                    callbacks=[tbCallBack]
+                    callbacks=[tbCallBack] # Tensorboard callback
                 )
 
                 # Save the model
