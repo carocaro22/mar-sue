@@ -190,4 +190,4 @@ class RockPaperScissors:
 
 
 obj = RockPaperScissors()
-obj.train_model(verbose=True)
+obj.train_model()
