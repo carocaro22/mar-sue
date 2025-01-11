@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.summary.summary_iterator import summary_iterator
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -66,6 +67,22 @@ class RockPaperScissors:
 
         return X_train, X_test, y_train, y_test, output_dim
     
+    def export_tensorboard_plots(self, log_dir):
+        for root, dirs, files in os.walk(log_dir):
+            for file in files:
+                if file.startswith("events.out.tfevents"):
+                    event_file = os.path.join(root, file)
+                    for summary in summary_iterator(event_file):
+                        for value in summary.summary.value:
+                            if value.tag.startswith("Loss") or value.tag.startswith("Accuracy"):
+                                plt.figure()
+                                plt.plot([v.simple_value for v in summary.summary.value if v.tag == value.tag])
+                                plt.title(value.tag)
+                                plt.xlabel("Step")
+                                plt.ylabel(value.tag.split("_")[0])
+                                plt.savefig(f"{value.tag}.png")
+                                plt.close()
+    
     def train_model(self, hidden_units=10, stackLSTM=True, dropout=0.2, retrain=False, verbose=False): 
         # Define the log directory
         log_dir = './logs/'
@@ -76,7 +93,7 @@ class RockPaperScissors:
             if os.path.exists(log_dir):
                 shutil.rmtree(log_dir)
             
-            # Clean the models directory is it exists
+            # Clean the models directory if it exists
             if os.path.exists(models_dir):
                 shutil.rmtree(models_dir)
             
@@ -164,9 +181,13 @@ class RockPaperScissors:
         ax[1].set_ylabel('Accuracy')
         ax[1].set_ylim(0, 1)
 
+
+        self.export_tensorboard_plots(log_dir)
+
         plt.tight_layout()
         plt.savefig('model_performance.png')
         plt.show()
 
+
 obj = RockPaperScissors()
-obj.train_model(verbose=True, retrain=True)
+obj.train_model(verbose=True)
